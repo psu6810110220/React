@@ -1,4 +1,3 @@
-// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
@@ -14,8 +13,19 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { GeminiController } from './gemini/gemini.controller';
 import { GeminiService } from './gemini/gemini.service';
 
+// import สำหรับ Static File
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
 @Module({
   imports: [
+    // ✅ จุดที่แก้: ใช้ process.cwd() เพื่อชี้ไปที่ root folder จริงๆ
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads',
+      // ไม่ต้องใส่ serveRoot เพื่อให้เรียก http://localhost:3000/dune.jpg ได้เลย
+    }),
+
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -33,12 +43,12 @@ import { GeminiService } from './gemini/gemini.service';
     BookCategoryModule,
     BookModule,
     FixturesModule,
-    UserModule,
     AuthModule,
+    UserModule,
   ],
   controllers: [
     AppController,
-    GeminiController 
+    GeminiController
   ],
   providers: [
     AppService,
@@ -46,7 +56,7 @@ import { GeminiService } from './gemini/gemini.service';
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
-    GeminiService 
+    GeminiService
   ],
 })
 export class AppModule {}

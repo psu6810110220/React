@@ -3,7 +3,7 @@ import { Divider, Spin, Button, Modal } from 'antd';
 import { useNavigate } from 'react-router-dom'; 
 import axios from 'axios';
 import BookList from './components/BookList';
-
+import { GoogleGenerativeAI } from "@google/generative-ai";
 const URL_BOOK = "/api/book";
 
 function BookScreen() { 
@@ -49,24 +49,40 @@ function BookScreen() {
   // 4. ฟังก์ชันคุยกับ Gemini AI
   const handleAskGemini = async (book) => {
     setIsAiModalOpen(true);
-    setAiResult("");
+    setAiResult("กำลังเชื่อมต่อกับ AI...");
     setAiLoading(true);
     setCurrentBookName(book.title);
 
     try {
-      const prompt = `ช่วยสรุปเรื่องย่อและจุดเด่นของหนังสือเรื่อง "${book.title}" เขียนโดย ${book.author} ให้หน่อย แบบสั้นๆ กระชับ`;
-      
-      // เรียก API Backend 
-      const response = await axios.post('/api/gemini/chat', { message: prompt });
-      
-      setAiResult(response.data.reply || response.data.text || "ไม่ได้รับคำตอบจาก AI"); 
+        // -------------------------------------------------------------------
+        // 1. วาง Key ใหม่ที่คุณสร้างตรงนี้! (ห้ามมีช่องว่าง)
+        const API_KEY = "AIzaSyCzg6to8M3mdI-SzoP_rSpKQwwYaG5F6_4"; 
+        // -------------------------------------------------------------------
+
+        if (!API_KEY || API_KEY.startsWith("วาง_API")) {
+            throw new Error("กรุณาใส่ API Key ที่ถูกต้องก่อนใช้งาน");
+        }
+
+        // 2. สร้าง genAI (บรรทัดนี้ต้องไม่ Comment)
+        const genAI = new GoogleGenerativeAI(API_KEY); 
+
+        // 3. ใช้โมเดล gemini-pro 
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" }); 
+
+        const prompt = `สรุปหนังสือ "${book.title}" โดย ${book.author} สั้นๆ เป็นภาษาไทย`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        setAiResult(response.text());
+
     } catch (error) {
-      console.error(error);
-      setAiResult("เกิดข้อผิดพลาดในการเชื่อมต่อกับ AI");
+        console.error("Gemini Error:", error);
+        // แสดง Error ออกมาใน Modal เพื่อให้เห็นสาเหตุ
+        setAiResult(`เกิดข้อผิดพลาด: ${error.message}`);
     } finally {
-      setAiLoading(false);
+        setAiLoading(false);
     }
-  };
+};
 
   useEffect(() => {
     fetchBooks();
@@ -99,9 +115,9 @@ function BookScreen() {
             <BookList
               data={bookData}
               onLiked={handleLikeBook}
-              onDeleted={handleDeleteBook}
+              onDelete={handleDeleteBook}  // <--- แก้บรรทัดนี้ครับ (ลบตัว d ออก)
               onEdit={(book) => navigate(`/books/edit/${book.id}`)}
-              onAskAi={handleAskGemini} 
+              onAskAI={handleAskGemini}
             />
         </div>
       </Spin>

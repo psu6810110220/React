@@ -1,31 +1,33 @@
-// src/gemini/gemini.service.ts
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 
 @Injectable()
 export class GeminiService {
-  // 🟢 ผมใส่ Key จากรูปของคุณให้เลยครับ (AlzaSyB0...) จะได้ชัวร์
-  private apiKey = "AIzaSyB0uXmgPNXXBdqOWa5qrEIRoL0WV8qfWqk".trim(); 
+  // ⚠️ สำคัญ: เอา Key ที่ลงท้ายด้วย ...96SY มาใส่ตรงนี้แทนอันเก่านะครับ
+  private apiKey = "AIzaSyCzg6to8M3mdI-SzoP_rSpKQwwYaG5F6_4"; 
 
   async chat(message: string) {
-    console.log("🚀 Final Test: Gemini 1.5 Flash (API Enabled)..."); 
-
+    // เปลี่ยน Log เพื่อให้เรารู้ว่าโค้ดใหม่ทำงานแล้ว
+    console.log("🤖 Asking Gemini 1.5 Flash (New Code)...");
+    
+    // ✅ ใช้ URL รุ่นใหม่ล่าสุด (gemini-1.5-flash) ที่รองรับแน่นอน
+    // เติม -001 ต่อท้ายครับ เพื่อระบุเวอร์ชันที่แน่นอน
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${this.apiKey}`;
     try {
-      // ✅ ใช้รุ่น 1.5-flash (รุ่นปัจจุบันสำหรับ Project ใหม่)
-      // ตอนนี้ API เปิดแล้ว บรรทัดนี้ต้องทำงานได้แน่นอนครับ
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`;
-
       const response = await axios.post(url, {
         contents: [{ parts: [{ text: message }] }]
       }, {
         headers: { 'Content-Type': 'application/json' }
       });
 
-      const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      // ดึงคำตอบ (ใช้ any ป้องกัน error typescript)
+      const resData: any = response.data;
+      const text = resData?.candidates?.[0]?.content?.parts?.[0]?.text;
+      
       return { reply: text || "AI ไม่ตอบกลับ" };
 
     } catch (error) {
-      console.error("❌ Error:", error.response?.data || error.message);
+      console.error("❌ AI Error:", error.response?.data || error.message);
       return { reply: "AI Error: " + (error.response?.data?.error?.message || error.message) };
     }
   }

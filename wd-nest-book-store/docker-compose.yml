@@ -45,6 +45,7 @@ services:
       - ./tsconfig.json:/app/tsconfig.json
       - ./tsconfig.build.json:/app/tsconfig.build.json
       - ./nest-cli.json:/app/nest-cli.json
+      - ./uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
