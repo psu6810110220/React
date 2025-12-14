@@ -1,31 +1,21 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UserService } from '../user/user.service';
-import { LoginDto } from './dto/login.dto';
-import { JwtPayload } from './strategies/jwt.strategy';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private userService: UserService,
-    private jwtService: JwtService,
-  ) {}
-
-  async login(loginDto: LoginDto): Promise<{ access_token: string }> {
-    const user = await this.userService.validateUser(loginDto.username, loginDto.password);
-    
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+  // ฟังก์ชันตรวจสอบรหัสผ่าน (แบบง่าย สำหรับทดสอบ)
+  validateUser(username: string, pass: string): any {
+    // กำหนดให้ User ชื่อ 'demo' และรหัสอะไรก็ได้ผ่านหมด (หรือจะกำหนดรหัสตรงนี้ก็ได้)
+    if (username === 'demo') { // && pass === '1234' ถ้าอยากล็อครหัส
+      return { userId: 1, username: 'demo' };
     }
+    return null;
+  }
 
-    const payload: JwtPayload = {
-      sub: user.id,
-      username: user.username,
-    };
-
+  // ฟังก์ชันสร้าง Token ส่งกลับไปให้หน้าเว็บ
+  async login(user: any) {
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: 'mock-jwt-token-created-by-auth-module', // ส่ง Token จำลอง
+      user: user,
     };
   }
 }
-
